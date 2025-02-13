@@ -1,47 +1,32 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { User } = require("../models");
-require("dotenv").config();
+const authService = require("../services/authService");
 
 // Đăng ký tài khoản mới
 exports.register = async(req, res) => {
     try {
-        const { name, email, password, role } = req.body;
-
-        // Kiểm tra email đã tồn tại
-        const userExists = await User.findOne({ where: { email } });
-        if (userExists) return res.status(400).json({ message: "Email đã tồn tại" });
-
-        // Hash mật khẩu
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Tạo user mới
-        const newUser = await User.create({ name, email, password: hashedPassword, role });
-
-        res.status(201).json({ message: "Đăng ký thành công", user: newUser });
+        const newUser = await authService.register(req.body);
+        res.status(201).json({ success: true, message: "Đăng ký thành công", user: newUser });
     } catch (error) {
-        res.status(500).json({ message: "Lỗi server", error });
+        res.status(400).json({ success: false, message: error.message });
     }
 };
 
 // Đăng nhập
 exports.login = async(req, res) => {
     try {
-        const { email, password } = req.body;
-
-        // Kiểm tra user tồn tại
-        const user = await User.findOne({ where: { email } });
-        if (!user) return res.status(400).json({ message: "Email không tồn tại" });
-
-        // Kiểm tra mật khẩu
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Sai mật khẩu" });
-
-        // Tạo token
-        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
-
-        res.status(200).json({ message: "Đăng nhập thành công", token });
+        const { user, token } = await authService.login(req.body);
+        res.status(200).json({ success: true, message: "Đăng nhập thành công", token, user });
     } catch (error) {
-        res.status(500).json({ message: "Lỗi server", error });
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// Lấy thông tin người dùng hiện tại (từ JWT token)
+exports.getCurrentUser = async(req, res) => {
+    try {
+        const user = await authService.getUserById(req.user.id);
+        if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
+        res.status(200).json({ success: true, user });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };
