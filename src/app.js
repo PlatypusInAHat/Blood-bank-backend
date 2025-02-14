@@ -2,9 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const swaggerJsDoc = require("swagger-jsdoc");
+const swaggerUi = require("swagger-ui-express");
 require("dotenv").config();
 
-// Import middleware
 const errorHandler = require("./middleware/errorHandler");
 
 // Import routes
@@ -21,6 +22,21 @@ app.use(express.json());
 app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
+
+// Swagger API Documentation
+const swaggerOptions = {
+    swaggerDefinition: {
+        openapi: "3.0.0",
+        info: {
+            title: "Blood Bank API",
+            version: "1.0.0",
+            description: "API documentation for Blood Bank Management System"
+        }
+    },
+    apis: ["./src/routes/*.js"]
+};
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Routes
 app.use("/api/auth", authRoutes);

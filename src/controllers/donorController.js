@@ -58,3 +58,17 @@ exports.deleteDonor = async(req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+exports.searchDonors = async(req, res) => {
+    try {
+        const { bloodType } = req.query;
+        const donors = await Donor.findAll({ where: { blood_type: bloodType } });
+
+        if (donors.length === 0) {
+            return res.status(404).json({ message: "Không tìm thấy người hiến máu phù hợp" });
+        }
+
+        res.status(200).json({ success: true, data: donors });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
