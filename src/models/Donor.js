@@ -7,7 +7,8 @@ module.exports = (sequelize) => {
         age: { type: DataTypes.INTEGER, allowNull: false },
         gender: { type: DataTypes.ENUM("male", "female", "other"), allowNull: false },
         blood_type: { type: DataTypes.STRING(5), allowNull: false },
-        last_donation: { type: DataTypes.DATE, allowNull: true }
+        last_donation: { type: DataTypes.DATE, allowNull: true },
+        history: { type: DataTypes.JSON, allowNull: true }, // Thêm lịch sử hiến máu
     });
 
     return Donor;
